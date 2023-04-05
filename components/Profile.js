@@ -88,6 +88,7 @@ const Profile = () => {
 
 	const [onFocusName, setOnFocusName] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
+    
 	_retrieveDataSetData = () => {
 		try {
 			AsyncStorage.getItem("id").then((data) => {

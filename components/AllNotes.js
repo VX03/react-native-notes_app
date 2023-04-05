@@ -15,7 +15,8 @@ import CustomTextInput from "./CustomTextInput";
 import { useNavigation } from "@react-navigation/native";
 import Note from "./Note";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { retrieveNotes } from "./db";
+import { retrieveNotes, checkNotePassword } from "./db";
+import CustomAlert from "./CustomAlert";
 
 const AllNotes = () => {
 	const [data, setData] = useState([]);
@@ -23,6 +24,10 @@ const AllNotes = () => {
 	const [modalVisible, setModalVisible] = useState(false);
 	const [note, setNote] = useState(null);
 	const [isLoading, setIsLoading] = useState(true);
+	const [passwordIsVisible, setPasswordIsVisible] = useState(false);
+    const [errorIsVisible, setErrorIsVisible] = useState(false);
+	const [password, setPassword] = useState("");
+
 	const getData = () => {
 		AsyncStorage.getItem("id").then((id) => {
 			if (id !== null) {
@@ -42,8 +47,45 @@ const AllNotes = () => {
 		setNote(item);
 	};
 
+	const pressOk = () => {
+		AsyncStorage.getItem("id").then((id) => {
+			if (id !== null) {
+				// setPasswordIsVisible(false)
+				checkNotePassword(id, note.title, password).then((results) => {
+                    console.log('rRRRR: '+results)
+                    setPassword("")
+                    setModalVisible(true);
+                    setPasswordIsVisible(false)
+                })
+                .catch((error) => {
+                    setErrorIsVisible(true)
+                })
+                
+			}
+		});
+	};
+
+	const cancel = () => {
+		setPasswordIsVisible(false);
+	};
+
 	return (
 		<View style={styles.container}>
+			<CustomAlert
+				displayMode={"password"}
+				visibility={passwordIsVisible}
+				passwordAlert={pressOk}
+				cancelAlert={cancel}
+				displayMsg={"Input password:"}
+				password={password}
+				setPassword={setPassword}
+			/>
+            <CustomAlert
+				displayMode={"error"}
+				visibility={errorIsVisible}
+				dismissAlert={setErrorIsVisible}
+				displayMsg={"Wrong Password"}
+			/>
 			<Note
 				ModalVisible={modalVisible}
 				setModalVisible={setModalVisible}
@@ -58,12 +100,6 @@ const AllNotes = () => {
 						placeholder={"Search"}
 						onChangeText={getData}
 					/>
-					{/* <TouchableOpacity
-						style={styles.buttonStyle}
-						onPress={onSubmit}
-					>
-						<Ionicons name="send-outline" size={30}></Ionicons>
-					</TouchableOpacity> */}
 				</View>
 			</View>
 			{isLoading ? (
@@ -84,7 +120,12 @@ const AllNotes = () => {
 							style={styles.itemStyle}
 							onPress={() => {
 								changeNote(item);
-								setModalVisible(true);
+								if (
+									item.password != null &&
+									item.password != ""
+								) {
+									setPasswordIsVisible(true);
+								} else setModalVisible(true);
 							}}
 						>
 							<Text style={styles.date}>{item.date_edited}</Text>
@@ -102,16 +143,20 @@ const AllNotes = () => {
 									? item.content
 									: "No content."}
 							</Text>
-							<Ionicons
-								name={"lock-closed"}
-								color={"white"}
-								size={25}
-								style={{
-									position: "absolute",
-									bottom: 10,
-									right: 10,
-								}}
-							/>
+							{item.password ? (
+								<Ionicons
+									name={"lock-closed"}
+									color={"white"}
+									size={25}
+									style={{
+										position: "absolute",
+										bottom: 10,
+										right: 10,
+									}}
+								/>
+							) : (
+								<></>
+							)}
 						</TouchableOpacity>
 					)}
 					style={{ marginBottom: 55 }}

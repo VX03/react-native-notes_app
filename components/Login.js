@@ -24,8 +24,8 @@ const Login = () => {
 	const [isVisble, setIsVisible] = useState("");
 
     useEffect(()=>{
-        deleteNotedb()
-        createNotedb()
+        // deleteNotedb()
+        // createNotedb()
     })
 
 	_storeData = async (id) => {

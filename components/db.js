@@ -96,11 +96,11 @@ export const retrieveNotes = (id, value) =>
 				`SELECT * FROM note WHERE userid = ? and title LIKE ? ORDER BY title ASC`,
 				[id, `%${value}%`],
 				(tx, results) => {
-					// console.log(JSON.stringify(results))
+					//console.log(JSON.stringify(results))
 					resolve(results.rows._array);
 				},
 				(tx, error) => {
-                    console.log(error)
+					//console.log(error)
 					reject("Unable to retrieve notes");
 				}
 			);
@@ -115,16 +115,33 @@ export const deleteNote = (id, title) =>
 				[id, title],
 				(tx, results) => {
 					console.log(results);
-                    if(results.rowsAffected > 0)
-                        resolve('Note deleted')
-                    else
-                        reject("Unable to delete note")
+					if (results.rowsAffected > 0) resolve("Note deleted");
+					else reject("Unable to delete note");
 				},
 				(tx, error) => {
-                    console.log(error)
-                    reject("Unable to delete note")
-                }
-			)
+					console.log(error);
+					reject("Unable to delete note");
+				}
+			);
+		});
+	});
+
+    export const checkNotePassword = (id, title, password) =>
+	new Promise((resolve, reject) => {
+		noteDb.transaction((tx) => {
+			tx.executeSql(
+				`SELECT * FROM note WHERE userid=? AND title=? AND password=?`,
+				[id, title, password],
+				(tx, results) => {
+					console.log(results);
+					if (results.rows.length == 1) resolve("Password Correct");
+					else reject("Password Incorrect");
+				},
+				(tx, error) => {
+					console.log(error);
+					reject("Password Incorrect");
+				}
+			);
 		});
 	});
 
@@ -143,9 +160,7 @@ export const insertUser = (username, password, phone, address, email) =>
 				},
 				(tx, error) => {
 					console.log(error);
-					reject(
-						"There is a similar username /email"
-					);
+					reject("There is a similar username /email");
 				}
 			);
 		})

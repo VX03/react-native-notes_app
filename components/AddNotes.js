@@ -8,10 +8,12 @@ import {
 	Modal,
 	TouchableOpacity,
 	Alert,
+	RefreshControl,
 } from "react-native";
 import NoteForm from "./NoteForm";
 import { insertNote } from "./db";
 import CustomAlert from "./CustomAlert";
+
 const AddNotes = ({ pressTrash, setPressTrash, applyLock, setApplyLock }) => {
 	const [title, setTitle] = useState("");
 	const [content, setContent] = useState("");
@@ -20,7 +22,7 @@ const AddNotes = ({ pressTrash, setPressTrash, applyLock, setApplyLock }) => {
 	const [ErrorIsVisible, setErrorIsVisible] = useState(false);
 	const [passwordIsVisible, setPasswordIsVisible] = useState(false);
 
-	const [password, setPassword] = useState(null);
+	const [password, setPassword] = useState("");
 
 	const [errMsg, setErrMsg] = useState("");
 	useEffect(() => {
@@ -32,13 +34,51 @@ const AddNotes = ({ pressTrash, setPressTrash, applyLock, setApplyLock }) => {
 		}
 	}, [pressTrash]);
 
-	useEffect(() => {
+	const onPressBtn = () => {
 		if (applyLock) {
 			setPasswordIsVisible(true);
-		}
-	}, [applyLock]);
+		} else {
+			AsyncStorage.getItem("id").then((data) => {
+				if (data != null && title != "") {
+					const date = new Date();
 
-	const onPressBtn = () => {
+					let day = date.getDate();
+					let month = date.getMonth() + 1;
+					let year = date.getFullYear();
+
+					let pass;
+					if (applyLock && password != "") {
+						pass = password;
+					}
+					// This arrangement can be altered based on how we want the date's format to appear.
+					let currentDate = `${day}/${month}/${year}`;
+					insertNote(data, title, content, currentDate, pass)
+						.then((results) => {
+							// Alert.alert("Inserted", results);
+							setSuccessIsVisible(true);
+							setTitle("");
+							setContent("");
+						})
+						.catch((error) => {
+							console.log("ere");
+							//  Alert.alert("ERROR", error);
+							setErrMsg(error);
+							setErrorIsVisible(true);
+						});
+				} else if (title == "") {
+					setErrMsg("There must be a title");
+					setErrorIsVisible(true);
+				}
+			});
+			setApplyLock(false);
+		}
+	};
+
+	const cancel = () => {
+        setPasswordIsVisible(false)
+    };
+
+	const pressOk = () => {
 		AsyncStorage.getItem("id").then((data) => {
 			if (data != null && title != "") {
 				const date = new Date();
@@ -47,35 +87,37 @@ const AddNotes = ({ pressTrash, setPressTrash, applyLock, setApplyLock }) => {
 				let month = date.getMonth() + 1;
 				let year = date.getFullYear();
 
-				let password;
-				if (applyLock) {
-					password = "123";
-				}
+				if (applyLock && (password != "" && password != null)) {
+                    let currentDate = `${day}/${month}/${year}`;
+                    insertNote(data, title, content, currentDate, password)
+                        .then((results) => {
+                            // Alert.alert("Inserted", results);
+                            setPasswordIsVisible(false)
+                            setApplyLock(false)
+                            setSuccessIsVisible(true);
+                            setTitle("");
+                            setContent("");
+                            setPassword('')
+                        })
+                        .catch((error) => {
+                            console.log("ere");
+                            //  Alert.alert("ERROR", error);
+                            setErrMsg(error);
+                            setErrorIsVisible(true);
+                        });
+				} else if (password == null || password == "") {
+                    setErrMsg("Password must not be an empty string");
+                    setErrorIsVisible(true);
+                }
 				// This arrangement can be altered based on how we want the date's format to appear.
-				let currentDate = `${day}/${month}/${year}`;
-				insertNote(data, title, content, currentDate, password)
-					.then((results) => {
-						// Alert.alert("Inserted", results);
-						setSuccessIsVisible(true);
-						setTitle("");
-						setContent("");
-						setApplyLock(false);
-					})
-					.catch((error) => {
-						// Alert.alert("ERROR", error);
-						setErrorIsVisible(true);
-						setErrMsg(error);
-					});
 			} else if (title == "") {
 				setErrMsg("There must be a title");
 				setErrorIsVisible(true);
 			}
 		});
+
+        // setPassword('')
 	};
-
-    const cancel = () => {
-
-    }
 
 	return (
 		<View style={styles.container}>
@@ -95,11 +137,11 @@ const AddNotes = ({ pressTrash, setPressTrash, applyLock, setApplyLock }) => {
 			<CustomAlert
 				displayMode={"password"}
 				visibility={passwordIsVisible}
-				passwordAlert={setPasswordIsVisible}
-                cancelAlert={cancel}
+				passwordAlert={pressOk}
+				cancelAlert={cancel}
 				displayMsg={"Input password:"}
-                password={password}
-                setPassword={setPassword}
+				password={password}
+				setPassword={setPassword}
 			/>
 			<NoteForm
 				title={title}

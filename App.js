@@ -54,6 +54,7 @@ const MainStack = () => {
 	const [applyLock, setApplyLock] = useState(false);
 
 
+
 	const _renderIcon = (routeName, selectedTab) => {
 		let icon = "";
 
@@ -85,9 +86,9 @@ const MainStack = () => {
 		);
 	};
 
-	const AllNotesComponent = (props) => <AllNotes />;
+	const AllNotesComponent = (props) => <AllNotes setApplyLock={() => setApplyLock(false)}/>;
 
-	const ProfileComponent = (props) => <Profile />;
+	const ProfileComponent = (props) => (<Profile setApplyLock={() => setApplyLock(false)}/>);
 
 	const AddNotesComponent = (props) => (
 		<AddNotes
@@ -115,7 +116,8 @@ const MainStack = () => {
 				<Animated.View style={styles.btnCircleUp}>
 					<TouchableOpacity
 						style={styles.button}
-						onPress={() => navigate("addNotes")}
+						onPress={() => {
+                            navigate("addNotes")}}
 					>
 						<Ionicons name={"add-outline"} color="gray" size={30} />
 					</TouchableOpacity>
@@ -128,6 +130,7 @@ const MainStack = () => {
 				position="LEFT"
 				component={AllNotesComponent}
 				options={{ headerStyle: { backgroundColor: "#B6B8D6" } }}
+                
 			/>
 			<CurvedBottomBarExpo.Screen
 				name="addNotes"
