@@ -10,7 +10,7 @@ export default function CustomAlert({
 	displayMsg,
 	visibility,
 	dismissAlert,
-    passwordAlert,
+	passwordAlert,
 	cancelAlert,
 	password,
 	setPassword,
@@ -78,6 +78,7 @@ export default function CustomAlert({
 										placeholder={"password"}
 										input={password}
 										setInput={setPassword}
+										secureTextEntry={true}
 									/>
 								</>
 							) : (

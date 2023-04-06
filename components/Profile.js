@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Image, ActivityIndicator } from "react-native";
+import { View, StyleSheet, Image, ActivityIndicator,Button } from "react-native";
 import { FAB } from "react-native-elements";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { TextInput } from "react-native";
@@ -9,6 +9,8 @@ import { useNavigation } from "@react-navigation/native";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { retrieveUser, editUser } from "./db";
+
+import * as ImagePicker from "expo-image-picker";
 
 const FloatingBtn = ({ editable, fn }) => {
 	return (
@@ -88,7 +90,23 @@ const Profile = () => {
 
 	const [onFocusName, setOnFocusName] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
-    
+
+	const [image, setImage] = useState(null);
+	const pickImage = async () => {
+		// No permissions request is necessary for launching the image library
+		let result = await ImagePicker.launchImageLibraryAsync({
+			mediaTypes: ImagePicker.MediaTypeOptions.All,
+			allowsEditing: true,
+			aspect: [4, 3],
+			quality: 1,
+		});
+
+		console.log(result);
+
+		if (!result.canceled) {
+			setImage(result.assets[0].uri);
+		}
+	};
 	_retrieveDataSetData = () => {
 		try {
 			AsyncStorage.getItem("id").then((data) => {
@@ -101,7 +119,7 @@ const Profile = () => {
 						changePhone(results.phone);
 						changeEmail(results.email);
 						setResults(results);
-                        setIsLoading(false)
+						setIsLoading(false);
 					});
 				}
 			});
@@ -170,10 +188,16 @@ const Profile = () => {
 			scrollEnabled={true}
 		>
 			{isLoading ? (
-                <View style={{flex:1, justifyContent:'center', alignItems:'center'}}>
-				    <ActivityIndicator size="large" color="purple" />
-                </View>
-            ) : (
+				<View
+					style={{
+						flex: 1,
+						justifyContent: "center",
+						alignItems: "center",
+					}}
+				>
+					<ActivityIndicator size="large" color="purple" />
+				</View>
+			) : (
 				<>
 					<LinearGradient
 						colors={["#e0aaff", "#9d4edd", "#5a189a"]}
@@ -183,7 +207,7 @@ const Profile = () => {
 							style={styles.logout}
 							onPress={() => {
 								navigation.navigate("login");
-                                AsyncStorage.clear()
+								AsyncStorage.clear();
 							}}
 						>
 							<Ionicons
@@ -193,10 +217,19 @@ const Profile = () => {
 							/>
 						</TouchableOpacity>
 						<View style={styles.subTopContainer}>
+                            <TouchableOpacity onPress={pickImage}>
 							<Image
-								source={require("../images/profile.jpg")}
+								source={
+									image
+										? { uri: image }
+										: require("../images/profile.jpg")
+								}
 								style={styles.imgStyle}
+
 							/>
+                            </TouchableOpacity>
+
+			
 							<View
 								style={{
 									borderBottomColor: editable
@@ -235,14 +268,14 @@ const Profile = () => {
 							value={address}
 							fn={changeAddress}
 							logoname={"location-outline"}
-                            placeholder={'Address'}
+							placeholder={"Address"}
 						/>
 						<TxtFieldWithLogo
 							editable={editable}
 							value={email}
 							fn={changeEmail}
 							logoname={"mail-outline"}
-                            placeholder={'Email'}
+							placeholder={"Email"}
 						/>
 						<TxtFieldWithLogo
 							editable={editable}
@@ -250,7 +283,7 @@ const Profile = () => {
 							fn={changePhone}
 							logoname={"call-outline"}
 							isNumberOnly={true}
-                            placeholder={'Phone No.'}
+							placeholder={"Phone No."}
 						/>
 					</View>
 					<FloatingBtn editable={editable} fn={changeEditable} />

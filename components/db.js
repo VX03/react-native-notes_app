@@ -1,6 +1,4 @@
 import * as SQLite from "expo-sqlite";
-import { Alert } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const userDb = SQLite.openDatabase("db.user");
 const noteDb = SQLite.openDatabase("db.note");
@@ -12,6 +10,8 @@ export const createUserdb = () =>
             (id INTEGER PRIMARY KEY, 
                 username TEXT NOT NULL UNIQUE, 
                 password TEXT NOT NULL,
+                img TEXT,
+
                 email TEXT, 
                 phone TEXT, 
                 address TEXT)`
@@ -133,13 +133,32 @@ export const deleteNote = (id, title) =>
 				`SELECT * FROM note WHERE userid=? AND title=? AND password=?`,
 				[id, title, password],
 				(tx, results) => {
-					console.log(results);
+					// console.log(results);
 					if (results.rows.length == 1) resolve("Password Correct");
 					else reject("Password Incorrect");
 				},
 				(tx, error) => {
 					console.log(error);
 					reject("Password Incorrect");
+				}
+			);
+		});
+	});
+
+    export const editNotePassword = (id, title, password) =>
+	new Promise((resolve, reject) => {
+		noteDb.transaction((tx) => {
+			tx.executeSql(
+				`UPDATE note SET password = ? WHERE title = ? AND userid = ?`,
+				[password, title, id],
+				(tx, results) => {
+					 console.log(results);
+					if (results.rowsAffected == 1) resolve("Password Updated");
+					else reject("Password Not Updated");
+				},
+				(tx, error) => {
+					console.log(error);
+					reject("Password Not Updated");
 				}
 			);
 		});

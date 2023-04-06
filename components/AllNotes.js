@@ -52,7 +52,7 @@ const AllNotes = () => {
 			if (id !== null) {
 				// setPasswordIsVisible(false)
 				checkNotePassword(id, note.title, password).then((results) => {
-                    console.log('rRRRR: '+results)
+
                     setPassword("")
                     setModalVisible(true);
                     setPasswordIsVisible(false)
@@ -67,6 +67,7 @@ const AllNotes = () => {
 
 	const cancel = () => {
 		setPasswordIsVisible(false);
+        setPassword('')
 	};
 
 	return (
